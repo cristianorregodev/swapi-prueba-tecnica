@@ -58,9 +58,13 @@ const applySwapiEndpoints = (server, app) => {
         res.send(data);
     });
 
-    server.get("/hfswapi/getWeightOnPlanetRandom", async (req, res) => {
-        res.sendStatus(501);
-    });
+    server.get(
+        "/hfswapi/getWeightOnPlanetRandom/character/:charId/planet/:planetId",
+        async (req, res) => {
+            const { charId, planetId } = req.params;
+            res.sendStatus(501);
+        }
+    );
 
     server.get("/hfswapi/getLogs", async (req, res) => {
         const data = await app.db.logging.findAll();
