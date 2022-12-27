@@ -13,7 +13,7 @@ const applySwapiEndpoints = (server, app) => {
         const { id } = req.params;
         let data; //Variable to set the data
 
-        data = data = await app.db.swPeople.findOne({ where: { id: id } }); //Get data from DB if exist
+        data = data = await app.db.swPeople.findOne({ where: { id: id } }); //Get character from DB if exist
 
         if (data) return res.send(data); //Evaluate if DB contains data for the previus Query
 
@@ -36,7 +36,26 @@ const applySwapiEndpoints = (server, app) => {
     });
 
     server.get("/hfswapi/getPlanet/:id", async (req, res) => {
-        res.sendStatus(501);
+        const { id } = req.params;
+        let data; //Variable to set the data
+
+        //Get the planet from BD if exist
+        data = await app.db.swPlanet.findOne({ where: { id: id } });
+
+        if (data) return res.send(data); //Evaluate if DB contains data for the previus Query
+
+        //Get planet from API
+        const { name, gravity } = await app.swapiFunctions.genericRequest(
+            `https://swapi.dev/api/planets/${id}`,
+            "GET",
+            null,
+            true
+        );
+        data = {
+            name,
+            gravity: Number(gravity.split(" ")[0]), //Convert the value to a number
+        };
+        res.send(data);
     });
 
     server.get("/hfswapi/getWeightOnPlanetRandom", async (req, res) => {
