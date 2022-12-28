@@ -62,7 +62,46 @@ const applySwapiEndpoints = (server, app) => {
         "/hfswapi/getWeightOnPlanetRandom/character/:charId/planet/:planetId",
         async (req, res) => {
             const { charId, planetId } = req.params;
-            res.sendStatus(501);
+
+            //Get character and planet from DB
+            const character = await app.db.swPeople.findOne({ where: { id: charId } });
+            const planet = await app.db.swPlanet.findOne({ where: { id: planetId } });
+
+            //Evaluate if the database contains data to continue
+            if (character && planet) {
+                //Evaluate the character homeworld
+                if (character.homeworld_name === planet.name) {
+                    return res.sendStatus(404);
+                }
+                const weigth = await app.swapiFunctions.getWeightOnPlanet(
+                    character.mass,
+                    planet.gravity
+                );
+                return res.send({ weigth });
+            }
+            //Fetchind character and planet from API
+            const { mass, homeworld } = await app.swapiFunctions.genericRequest(
+                `https://swapi.dev/api/people/${charId}`,
+                "GET",
+                null,
+                true
+            );
+            const { gravity, url } = await app.swapiFunctions.genericRequest(
+                `https://swapi.dev/api/planets/${planetId}`,
+                "GET",
+                null,
+                true
+            );
+
+            const weigth = await app.swapiFunctions.getWeightOnPlanet(
+                mass,
+                Number(gravity.split(" ")[0])
+            );
+
+            if (url === homeworld) {
+                return res.sendStatus(404);
+            }
+            res.send({ weigth });
         }
     );
 
